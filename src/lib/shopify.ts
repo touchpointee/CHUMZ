@@ -48,6 +48,28 @@ export interface ShopifyProduct {
   };
 }
 
+export interface ShopifyArticle {
+  node: {
+    id: string;
+    title: string;
+    contentHtml: string;
+    excerpt: string;
+    publishedAt: string;
+    handle: string;
+    image?: {
+      url: string;
+      altText: string | null;
+    };
+    authorV2?: {
+      name: string;
+    };
+    blog?: {
+      title: string;
+      handle: string;
+    };
+  };
+}
+
 export async function storefrontApiRequest(query: string, variables: any = {}) {
   const response = await fetch(SHOPIFY_STOREFRONT_URL, {
     method: 'POST',
@@ -521,4 +543,99 @@ export async function subscribeToNewsletter(email: string): Promise<{ success: b
     console.error('Newsletter subscription error:', error);
     return { success: false, message: "Unable to subscribe. Please try again later." };
   }
+}
+
+const GET_BLOGS_QUERY = `
+  query GetBlogs($first: Int!) {
+    blogs(first: 10) {
+      edges {
+        node {
+          id
+          title
+          handle
+          articles(first: $first, sortKey: PUBLISHED_AT, reverse: true) {
+            edges {
+              node {
+                id
+                title
+                contentHtml
+                excerpt
+                publishedAt
+                handle
+                image {
+                  url
+                  altText
+                }
+                authorV2 {
+                  name
+                }
+                blog {
+                  title
+                  handle
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export async function getBlogs(limit: number = 20) {
+  const data = await storefrontApiRequest(GET_BLOGS_QUERY, { first: limit });
+  const blogs = data.data.blogs.edges;
+  let allArticles: ShopifyArticle[] = [];
+
+  // @ts-ignore
+  blogs.forEach((blog: any) => {
+    if (blog.node.articles && blog.node.articles.edges) {
+      allArticles = [...allArticles, ...blog.node.articles.edges];
+    }
+  });
+
+  // Sort strictly by published date (newest first)
+  return allArticles.sort((a, b) =>
+    new Date(b.node.publishedAt).getTime() - new Date(a.node.publishedAt).getTime()
+  );
+}
+
+const GET_ARTICLE_QUERY = `
+  query GetArticle($blogHandle: String!, $articleHandle: String!) {
+    blogByHandle(handle: $blogHandle) {
+      articleByHandle(handle: $articleHandle) {
+        id
+        title
+        contentHtml
+        excerpt
+        publishedAt
+        handle
+        image {
+          url
+          altText
+        }
+        authorV2 {
+          name
+        }
+        blog {
+          title
+          handle
+        }
+      }
+    }
+  }
+`;
+
+export async function getArticle(blogHandle: string, articleHandle: string) {
+  const data = await storefrontApiRequest(GET_ARTICLE_QUERY, {
+    blogHandle,
+    articleHandle
+  });
+
+  if (data.data.blogByHandle && data.data.blogByHandle.articleByHandle) {
+    return {
+      node: data.data.blogByHandle.articleByHandle
+    } as ShopifyArticle;
+  }
+  return null;
 }

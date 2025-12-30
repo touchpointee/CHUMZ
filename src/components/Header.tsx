@@ -34,6 +34,9 @@ export const Header = () => {
           <Link to="/learn">
             <Button variant="ghost">Learn</Button>
           </Link>
+          <Link to="/blog">
+            <Button variant="ghost">Blog</Button>
+          </Link>
           <Link to="/contact">
             <Button variant="ghost">Contact</Button>
           </Link>

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ArrowRight, Sparkles, Shield, Heart, Leaf, Star, Quote, Truck, Award, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
+import heroImageMobile from "@/assets/hero-image-mobile.jpg";
 import amazonButton from "@/assets/amazon-button.png";
 import testimonialGirl1 from "@/assets/testimonial-girl-1.png";
 import testimonialGirl2 from "@/assets/testimonial-girl-2.png";
@@ -54,9 +55,12 @@ const Index = () => {
     <section className="relative overflow-hidden min-h-[90vh] flex items-center">
       {/* Full-width background image */}
       <div className="absolute inset-0">
-        <img src={heroImage} alt="Confident woman embracing daily comfort" className="w-full h-full object-cover" />
-        {/* Dark gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+        <picture>
+          <source media="(max-width: 768px)" srcSet={heroImageMobile} />
+          <img src={heroImage} alt="Confident woman embracing daily comfort" className="w-full h-full object-cover" />
+        </picture>
+        {/* Dark overlay for text readability - Uniform opacity */}
+        <div className="absolute inset-0 bg-black/50" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
       </div>
 

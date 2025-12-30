@@ -10,6 +10,8 @@ import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import About from "./pages/About";
 import Learn from "./pages/Learn";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Contact from "./pages/Contact";
 import Shipping from "./pages/Shipping";
 import Returns from "./pages/Returns";
@@ -38,6 +40,8 @@ const App = () => (
           <Route path="/product/:handle" element={<ProductDetail />} />
           <Route path="/about" element={<About />} />
           <Route path="/learn" element={<Learn />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:blogHandle/:articleHandle" element={<BlogPost />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/shipping" element={<Shipping />} />
           <Route path="/returns" element={<Returns />} />
