@@ -295,6 +295,21 @@ const Checkout = () => {
       },
       modal: {
         ondismiss: function () {
+          // GTM Payment Cancel Event
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: "payment_cancel",
+            ecommerce: {
+              currency: totals.currency,
+              value: totals.total,
+              items: items.map(item => ({
+                item_name: item.product.node.title,
+                item_id: item.variantId,
+                price: parseFloat(item.price.amount),
+                quantity: item.quantity
+              }))
+            }
+          });
           toast.info("Payment window closed");
         },
       },
