@@ -17,9 +17,13 @@ import testimonialGirl3 from "@/assets/testimonial-girl-3.png";
 import testimonialGirl4 from "@/assets/testimonial-girl-4.png";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { useAuthStore } from "@/stores/authStore";
+import { updateCustomer } from "@/lib/shopify";
+
 const Index = () => {
   const [email, setEmail] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const { accessToken } = useAuthStore();
 
   const {
     data: products,
@@ -38,14 +42,39 @@ const Index = () => {
     }
 
     setIsSubscribing(true);
-    const result = await subscribeToNewsletter(email);
-    setIsSubscribing(false);
+    try {
+      if (accessToken) {
+        // Logged in user - update customer profile
+        const result = await updateCustomer(accessToken, { acceptsMarketing: true });
 
-    if (result.success) {
-      toast.success(result.message);
-      setEmail('');
-    } else {
-      toast.error(result.message);
+        if (result.customer) {
+          toast.success("Successfully subscribed to marketing emails!");
+          setEmail('');
+        } else if (result.customerUserErrors?.length > 0) {
+          // If error, it might be because the email doesn't match the token's user, 
+          // but normally we just update the current user. 
+          // If the user typed a DIFFERENT email than their account email, this mutation 
+          // still updates the LOGGED IN user's marketing preference, not the email they typed.
+          // This is a UI nuance: we should probably clarify they are subscribing *their* account.
+          // However, for this fix, we assume they want to subscribe themselves.
+          toast.error(result.customerUserErrors[0].message);
+        }
+      } else {
+        // Guest user - create new subscriber
+        const result = await subscribeToNewsletter(email);
+
+        if (result.success) {
+          toast.success(result.message);
+          setEmail('');
+        } else {
+          toast.error(result.message);
+        }
+      }
+    } catch (error) {
+      console.error("Subscription error", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsSubscribing(false);
     }
   };
   return <div className="min-h-screen bg-gradient-to-b from-background via-accent/20 to-background">

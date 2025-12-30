@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { CartDrawer } from "./CartDrawer";
 import { Button } from "./ui/button";
 import chumzLogo from "@/assets/chumz-logo.webp";
@@ -12,10 +13,39 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
+import { updateCustomer } from "@/lib/shopify";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export const Header = () => {
+  const traverse = useNavigate(); // traverse is not used, but kept navigate
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user, logout, fetchUser, accessToken, setUser } = useAuthStore();
+  const [updating, setUpdating] = useState(false);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  const handleSubscriptionChange = async (checked: boolean) => {
+    if (!accessToken || !user) return;
+    setUpdating(true);
+    try {
+      const result = await updateCustomer(accessToken, { acceptsMarketing: checked });
+      if (result.customer) {
+        setUser({ ...user, acceptsMarketing: checked });
+        toast.success(checked ? "Subscribed to emails" : "Unsubscribed from emails");
+      } else if (result.customerUserErrors?.length > 0) {
+        toast.error(result.customerUserErrors[0].message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update subscription");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -57,6 +87,19 @@ export const Header = () => {
                     <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="px-2 py-2 flex items-center justify-between gap-4">
+                  <label htmlFor="marketing-mode" className="text-xs font-medium cursor-pointer">
+                    Subscribe to emails
+                  </label>
+                  <Switch
+                    id="marketing-mode"
+                    checked={user.acceptsMarketing}
+                    onCheckedChange={handleSubscriptionChange}
+                    disabled={updating}
+                    className="scale-75 origin-right"
+                  />
+                </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/orders")}>
                   <Package className="mr-2 h-4 w-4" />

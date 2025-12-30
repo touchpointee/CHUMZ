@@ -331,6 +331,7 @@ const GET_CUSTOMER_QUERY = `
       lastName
       email
       phone
+      acceptsMarketing
       defaultAddress {
         address1
         address2
@@ -358,6 +359,31 @@ export async function createCustomer(input: any) {
 export async function getCustomer(accessToken: string) {
   const data = await storefrontApiRequest(GET_CUSTOMER_QUERY, { customerAccessToken: accessToken });
   return data.data.customer;
+}
+
+const CUSTOMER_UPDATE_MUTATION = `
+  mutation customerUpdate($customerAccessToken: String!, $customer: CustomerUpdateInput!) {
+    customerUpdate(customerAccessToken: $customerAccessToken, customer: $customer) {
+      customer {
+        id
+        email
+        acceptsMarketing
+      }
+      customerUserErrors {
+        message
+        code
+        field
+      }
+    }
+  }
+`;
+
+export async function updateCustomer(accessToken: string, customerInput: any) {
+  const data = await storefrontApiRequest(CUSTOMER_UPDATE_MUTATION, {
+    customerAccessToken: accessToken,
+    customer: customerInput
+  });
+  return data.data.customerUpdate;
 }
 
 const GET_CUSTOMER_ORDERS_QUERY = `

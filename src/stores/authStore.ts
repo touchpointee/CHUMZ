@@ -8,6 +8,7 @@ interface User {
     lastName: string;
     email: string;
     phone?: string;
+    acceptsMarketing?: boolean;
     defaultAddress?: {
         address1: string;
         address2?: string;
@@ -23,6 +24,7 @@ interface AuthStore {
     accessToken: string | null;
     isGuest: boolean;
     isLoading: boolean;
+    setUser: (user: User) => void;
 
     login: (email: string, password: string) => Promise<string | null>;
     logout: () => void;
@@ -37,6 +39,8 @@ export const useAuthStore = create<AuthStore>()(
             accessToken: null,
             isGuest: false,
             isLoading: false,
+
+            setUser: (user) => set({ user }),
 
             login: async (email, password) => {
                 set({ isLoading: true });
