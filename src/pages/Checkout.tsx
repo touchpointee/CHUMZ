@@ -131,8 +131,8 @@ const Checkout = () => {
         console.error("Failed to fetch shipping config:", error);
         // Use defaults
         setShippingConfig({
-          freeShippingThreshold: 100,
-          shippingRate: 50,
+          freeShippingThreshold: 499,
+          shippingRate: 0,
           freeShippingLabel: "Free Shipping",
           shippingLabel: "Standard Shipping"
         });
@@ -188,9 +188,9 @@ const Checkout = () => {
   const totals = useMemo(() => {
     const currency = items[0]?.price.currencyCode || "INR";
     const subTotal = items.reduce((sum, i) => sum + parseFloat(i.price.amount) * i.quantity, 0);
-    const threshold = shippingConfig?.freeShippingThreshold ?? 100;
-    const rate = shippingConfig?.shippingRate ?? 50;
-    const shipping = subTotal > threshold ? 0 : rate;
+    const threshold = shippingConfig?.freeShippingThreshold ?? 499; // Default to 499 to match CartDrawer
+    const rate = shippingConfig?.shippingRate ?? 0;
+    const shipping = subTotal >= threshold ? 0 : rate;
     const isFreeShipping = shipping === 0;
     const amountToFreeShipping = threshold - subTotal;
     const total = subTotal + shipping;
