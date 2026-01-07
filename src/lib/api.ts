@@ -93,7 +93,18 @@ export async function getShippingConfig(): Promise<ShippingConfig> {
 }
 // Push Notifications
 export async function subscribeToPush(customerId: string) {
-  // 1. Get Public Key
+  if (!('Notification' in window)) {
+    throw new Error('Notifications are not supported on this device');
+  }
+
+  // 1. Request Permission FIRST (Critical for iOS/Mobile)
+  // This must be done directly in the user gesture, before any other async work.
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    throw new Error("Permission denied. Please enable notifications in your browser settings.");
+  }
+
+  // 2. Get Public Key
   const keyRes = await fetch("/api/push/public-key");
   const { publicKey } = await keyRes.json();
   if (!publicKey) throw new Error("No public key found");
